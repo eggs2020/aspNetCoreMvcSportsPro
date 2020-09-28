@@ -1,0 +1,38 @@
+﻿@model RegistrationViewModel
+@{
+    ViewBag.Title = "Registrations";
+}
+<h1>Customer: @Model.ActiveCustomer.FullName</h1>
+<h1>Registrations</h1>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Product</th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Registration registration in Model.Registrations)
+        {
+            <tr>
+                <td>@registration.Product.Name</td>
+                <td>
+                    <a asp-controller="Registration" asp-action="Delete"
+                       asp-route-id="@registration.ProductID" class="btn btn-success btn-sm" onclick="return confirm('Do you want to delete @registration.Product.Name?')">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<form asp-action="Add" method="post">
+    <div class="form-group">
+        <label asp-for="@Model.ProductID"></label>
+        <select asp-for="@Model.ProductID" asp-items="@(new SelectList(Model.Products, "ProductID", "Name"))" class="form-control">
+            <option value=""></option>
+        </select>
+    </div>
+    <input type="hidden" asp-for="@Model.CustomerID">
+    <button type="submit" class="btn btn-success" asp-controller="Registration" asp-action="Add">Register</button>
+</form>

@@ -1,0 +1,18 @@
+﻿@model Technician
+
+@{ViewBag.Title = "Delete Technician";
+}
+
+<h1>Confirm Deletion</h1>
+<p>Technician Name: @Model.Name<br/>
+   Technician Email: @Model.Phone</p>
+
+<form asp-action="Delete" method="post">
+    <!-- passing TechnicianID and Name properties to the POST request body 
+        when sending the request back to server-->
+    <input type="hidden" asp-for="TechnicianID" />
+    <input type="hidden" asp-for="Name" />
+
+    <button type="submit" class="btn btn-success">Delete</button>
+    <a asp-controller="Technician" asp-action="List" class="btn btn-success">Cancel</a>
+</form>

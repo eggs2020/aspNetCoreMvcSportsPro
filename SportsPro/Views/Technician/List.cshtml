@@ -1,0 +1,39 @@
+﻿@model List<Technician>
+   
+@{
+    ViewBag.Title = "Technician Manager";
+}
+<h1>@ViewBag.Title</h1>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">Phone</th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var technician in Model)
+        {
+        <tr>
+            <td>@technician.Name</td>
+            <td>@technician.Email</td>
+            <td>@technician.Phone</td>
+            <td>
+                <a asp-controller="Technician" asp-action="Edit"
+                   asp-route-id="@technician.TechnicianID" class="btn btn-success btn-sm">Edit</a>
+            </td>
+            <td>
+                <a asp-controller="Technician" asp-action="Delete"
+                   asp-route-id="@technician.TechnicianID" class="btn btn-success btn-sm">Delete</a>
+            </td>
+        </tr>
+        }
+          
+     </tbody>
+
+</table>
+<a asp-controller="Technician" asp-action="Add" class="btn btn-success">Add Technician</a>

@@ -1,0 +1,62 @@
+﻿@model IncidentViewModel
+   
+@{
+    ViewData["Title"] = "Incident Manager";
+}
+<h1>Incident Manager</h1>
+
+<!-- Display filter menu using Bootstrap pills-->
+<div class="container">
+    <ul class="nav nav-pills">
+        <li class="nav-item pill-green">
+            <a class="nav-link @(ViewBag.filterId == "all" ? "active": "") "
+               asp-controller="Incident" asp-action="List" asp-route-id="all">All Incidents</a>
+        </li>
+        <li class="nav-item pill-green">
+            <a class="nav-link @(ViewBag.filterId == "unassigned" ? "active": "") "
+               asp-controller="Incident" asp-action="List" asp-route-id="unassigned">Unassigned Incidents</a>
+        </li>
+        <li class="nav-item pill-green">
+            <a class="nav-link @(ViewBag.filterId == "openned" ? "active": "") "
+               asp-controller="Incident" asp-action="List" asp-route-id="openned">Open Incidents</a>
+        </li>
+    </ul>
+</div>
+
+
+<!-- Display incidents in a table -->
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Product</th>
+            <th scope="col">Date Opened</th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var incident in Model.Incidents)
+        {
+        <tr>
+            <td>@incident.Title</td>
+            <td>@incident.Customer.FullName</td> 
+            <td>@incident.Product.Name</td>     
+            <td>@incident.DateOpened.ToShortDateString()</td>
+            <td>
+                <a asp-controller="Incident" asp-action="Edit"
+                   asp-route-id="@incident.IncidentID" class="btn btn-success btn-sm">Edit</a>
+            </td>
+            <td>
+                <a asp-controller="Incident" asp-action="Delete"
+                   asp-route-id="@incident.IncidentID" class="btn btn-success btn-sm">Delete</a>
+            </td>
+
+        </tr>
+        }
+          
+        </tbody>
+
+</table>
+<a asp-controller="Incident" asp-action="Add" class="btn btn-success">Add Incident</a>

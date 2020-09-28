@@ -1,0 +1,54 @@
+﻿
+/* validation error - red border on dropdown menu and shading of dropdown
+------------------------------------------------------------------------- */
+.input-validation-error {
+    border: 2px solid rgba(220, 53, 69, 1); /* #dc3545 */
+    background-color: rgba(250, 235, 215, 0.2); /* #faebd7 */
+}
+
+
+/* Change color for Bootstrap pill "active" 
+--------------------------------------------------92, 184, 92 */
+.nav-pills .pill-green .nav-link:not(.active) {
+    background-color: rgb(255, 255, 255);
+    color: green;
+}
+.nav-pills .pill-green .nav-link {
+    background-color: rgba(92, 184, 92, 1);
+    color:white
+}
+
+
+/* h1 and h2 text 
+ ------------------------------------------------- */
+h1 {
+    margin-top: 1rem;
+    font-size: 20pt;
+}
+h2 {
+    margin-top: 1rem;
+    font-size: 12pt;
+}
+
+/* Sticky footer styles
+-------------------------------------------------- */
+.border-top {
+  border-top: 1px solid #e5e5e5;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  /* Margin bottom by footer height */
+  margin-bottom: 40px;
+}
+.footer {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  white-space: nowrap;
+  line-height: 40px; /* Vertically center the text there */
+}

@@ -1,0 +1,82 @@
+﻿@model IncidentAddEditViewModel
+
+@{
+    string title = Model.operationType + " Incident";
+    ViewData["Title"] = title;    
+}
+
+@section scripts
+{
+    <!-- Validation codes on front end-->
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+}
+
+<h1>@title</h1>
+
+<form asp-action="Edit" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group">
+        <label asp-for="@Model.CurrentIncident.CustomerID">Customer</label>
+        <select asp-for="@Model.CurrentIncident.CustomerID"
+                asp-items="@(new SelectList(Model.Customers, "CustomerID", "FullName" @*Model.CustomerID*@ ) )"
+                class="form-control">
+            @if (Model.operationType == "Add")
+            {
+                <option value="">Select a customer...</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.CurrentIncident.ProductID">Product</label>
+        <select asp-for="@Model.CurrentIncident.ProductID"
+                asp-items="@(new SelectList(Model.Products, "ProductID", "Name" @*Model.ProductID*@ ) )"
+                class="form-control">
+            @if (Model.operationType == "Add")
+            {
+                <option value="">Select a product...</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.CurrentIncident.Title">Title</label>
+        <input asp-for="@Model.CurrentIncident.Title" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.CurrentIncident.Description">Description</label>
+        <textarea asp-for="@Model.CurrentIncident.Description" class="form-control" row="2"> </textarea>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.CurrentIncident.TechnicianID">Technician</label>
+        <select asp-for="@Model.CurrentIncident.TechnicianID"
+                asp-items="@(new SelectList(Model.Technicians, "TechnicianID", "Name", Model.TechnicianID ) )"
+                class="form-control">
+            @if (Model.operationType == "Add")
+            {
+                <option value="">Assign a technician...</option>
+            }
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.CurrentIncident.DateOpened">Date Opened</label>
+        <input asp-for="@Model.CurrentIncident.DateOpened" class="form-control">
+    </div>
+
+    <div class="form-group">
+        <label asp-for="@Model.CurrentIncident.DateClosed">Date Closed</label>
+        <input asp-for="@Model.CurrentIncident.DateClosed" class="form-control">
+    </div>
+
+    <input type="hidden" asp-for="@Model.CurrentIncident.IncidentID" />
+
+    <button type="submit" class="btn btn-success">Save</button>
+
+    <a asp-controller="Incident" asp-action="List" class="btn btn-success">Cancel</a>
+
+</form>

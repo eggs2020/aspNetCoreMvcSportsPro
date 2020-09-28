@@ -1,0 +1,21 @@
+﻿@model RegistrationViewModel
+
+@{
+    ViewData["Title"] = "Registrations";
+}
+
+<h1>Get Customer</h1>
+
+<form asp-action="List" method="get">
+    <div class="form-group">
+
+        <select asp-for="@Model.CustomerID"
+                asp-items="@(new SelectList(Model.Customers, "CustomerID", "FullName") )"
+                class="form-control">
+            <option value="">Select a customer...</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">Select</button>
+
+</form>

@@ -1,0 +1,22 @@
+﻿@model IncidentAddEditViewModel
+
+@{
+    ViewData["Title"] = "Get Technician";
+}
+
+<h1>Technician</h1>
+
+<form asp-action="List" method="get">
+    <div class="form-group">
+
+        <select asp-for="@Model.TechnicianID"
+                asp-items="@(new SelectList(Model.Technicians, "TechnicianID", "Name", Model.CurrentTechnician.TechnicianID ) )"
+                class="form-control">
+            <option value="">Select a technician...</option>
+        </select>
+
+    </div>
+
+    <button type="submit" class="btn btn-success">Select</button>
+
+</form>
