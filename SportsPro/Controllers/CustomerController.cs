@@ -3,65 +3,75 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // manually added
-using SportsPro.Models; // manually added
+using Microsoft.EntityFrameworkCore; 
+using SportsPro.Models; 
+using SportsPro.DataLayer;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace SportsPro.Controllers
 {
+    [Authorize (Roles = "Admin")]
     public class CustomerController : Controller
     {
-        private SportsProContext context { get; set; }
-
-        public CustomerController(SportsProContext ctx)
+        private ISportsProUnitOfWork data { get; set; }
+        public CustomerController(ISportsProUnitOfWork ctx)
         {
-            context = ctx;
+            data = ctx;
         }
 
         [Route("Customers")]
         public IActionResult List()
         {
-            var customers = context.Customers.ToList();
-
+            var custOptions = new QueryOptions<Customer>();
+            var customers = data.Customers.List(custOptions);
             return View(customers);
         }
-
 
         [HttpGet]
         public IActionResult Add()
         {
+            //HttpContext.Session.SetString("action", "Add");
             ViewBag.Action = "Add";
-            ViewBag.Countries = context.Countries.OrderBy(c => c.Name).ToList();
+            
+            var countryOptions = new QueryOptions<Country> { OrderBy = c => c.Name };
+            ViewBag.Countries = data.Countries.List(countryOptions);
             return View("AddEdit", new Customer());
         }
 
+        // Load data to the edit page when user click "add" button on customer list page
         [HttpGet]
-        public IActionResult Edit(int id)   // Load data to the edit page when user click "add" button on customer list page
+        public IActionResult Edit(int id)   
         {
+            //HttpContext.Session.SetString("action", "Edit");
             ViewBag.Action = "Edit";
-            ViewBag.Countries = context.Countries.OrderBy(c => c.Name).ToList();
-            var customer = context.Customers.Find(id);
+           
+            var countryOptions = new QueryOptions<Country> { OrderBy = c => c.Name };
+            ViewBag.Countries = data.Countries.List(countryOptions);
+
+            var customer = data.Customers.Get(id);
             return View("AddEdit", customer);
         }
 
+        // Send revised-data from edit page
         [HttpPost]
-        public IActionResult Edit(Customer customer)    // This method is to send revised-data from edit page
+        public IActionResult Edit(Customer customer)    
         {
             if (ModelState.IsValid)
             {
                 if (customer.CustomerID == 0)
                 {
-                    context.Customers.Add(customer);
-                    // Display message on page
+                    data.Customers.Insert(customer);
                     TempData["message"] = $"{customer.FullName} has been added.";
                 }
                 else
                 {
-                    context.Customers.Update(customer);
-                    // Display message on page
+                    data.Customers.Update(customer); 
                     TempData["message"] = $"{customer.FullName} has been editted.";
                 }
 
-                context.SaveChanges();
+                data.Customers.Save();
                 return RedirectToAction("List", "Customer");  // List() method of CustomerController
             }
             else
@@ -70,46 +80,49 @@ namespace SportsPro.Controllers
                 ModelState.AddModelError(string.Empty,"There are errors in the form.");
                 
                 ViewBag.Action = (customer.CustomerID == 0) ? "Add" : "Edit";
-                ViewBag.Countries = context.Countries.OrderBy(c => c.Name).ToList();
+                var countryOptions = new QueryOptions<Country> { OrderBy = c => c.Name };
+                ViewBag.Countries = data.Countries.List(countryOptions);
                 return View("AddEdit", customer); // render the view page and passing customer object to it
             }
         }
+
+        // Loads data to the delete page
         [HttpGet]
-        public IActionResult Delete(int id)  // Loads info to the delete page
+        public IActionResult Delete(int id)  
         {
-            var customer = context.Customers.Find(id);
+            var customer = data.Customers.Get(id);
             return View(customer);
         }
 
+        // delete the record in DB based on data on delete page
         [HttpPost]
-        public IActionResult Delete(Customer customer)   // on the customer. When user click delete button from delete page
+        public IActionResult Delete(Customer customer)   
         {
-            context.Customers.Remove(customer);
-            context.SaveChanges();
+            data.Customers.Delete(customer);
+            data.Customers.Save();
 
-            //Adding TempData message
             TempData["message"] = $"{customer.FirstName} {customer.LastName} has been deleted.";
 
             return RedirectToAction("List", "Customer"); // List() method of CustomerController
         }
 
+        
         // To check if email entered is already in the database. Function call from Models/Customer.cs
         public JsonResult CheckEmail(string email, int CustomerID)
         {
             if (CustomerID == 0) // Adding a customer. So, check if email already exists
             {
-                Customer cust = context.Customers.FirstOrDefault(c => c.Email == email);
-                if (cust == null)   // email does not exist
+                //Customer cust = context.Customers.FirstOrDefault(c => c.Email == email);
+                var custOptions = new QueryOptions<Customer>();
+                var customers = data.Customers.List(custOptions);
+                if (customers == null)   // email does not exist
                     return Json(true);    
                 else
                     return Json($"{email} already exists.");
             }
             else  // Editing a customer. Don't check email              
-                return Json(true);
-
-            
+                return Json(true);   
         }
 
-
-    } //CustomerController class
+    } //Controller class
 } //namespace

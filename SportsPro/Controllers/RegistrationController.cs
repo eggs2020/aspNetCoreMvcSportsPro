@@ -4,11 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // manually added
-using SportsPro.Models; // manually added
+using Microsoft.EntityFrameworkCore; 
+using SportsPro.Models;
+using SportsPro.DataLayer;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SportsPro.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class RegistrationController : Controller
     {
         private SportsProContext context { get; set; }
@@ -55,7 +59,7 @@ namespace SportsPro.Controllers
                 viewModel.Registrations = query.ToList();
 
                 if (viewModel.Registrations.Count == 0)
-                    TempData["message"] = $"No registered products for {viewModel.ActiveCustomer.FullName}.";
+                    TempData["message"] = $"No registered products for {viewModel.ActiveCustomer.FullName}."; 
 
                 // Set session state for CustomerID
                 HttpContext.Session.SetInt32("sessionID", viewModel.ActiveCustomer.CustomerID);
@@ -76,9 +80,19 @@ namespace SportsPro.Controllers
             }
             else
             {
-                context.Registrations.Add(registration);
-                context.SaveChanges(); 
-                return RedirectToAction("List", "Registration", registration);
+                //Add product only if it is NOT already registered to the customer
+                var existingRegistration = context.Registrations.Find(registration.CustomerID, registration.ProductID);
+                if (existingRegistration == null)
+                {
+                    context.Registrations.Add(registration);
+                    context.SaveChanges();
+                    return RedirectToAction("List", "Registration", registration);
+                }
+                else 
+                {
+                    TempData["message"] = "Product is already registered to the customer.";
+                    return RedirectToAction("List", "Registration", registration);
+                }
             }        
         } // Add action method
 

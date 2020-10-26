@@ -1,9 +1,7 @@
 ﻿@{
     // To get the the controller and action values from the active webpage
-    string controller =
-        ViewContext.RouteData.Values["controller"].ToString();
-    string action =
-        ViewContext.RouteData.Values["action"].ToString();
+    string controller = ViewContext.RouteData.Values["controller"].ToString();
+    string action = ViewContext.RouteData.Values["action"].ToString();
 }
 
 <!DOCTYPE html>
@@ -14,55 +12,104 @@
     <title>@ViewData["Title"] - SportsPro</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <!--For Font Awesome-->
+    <link rel="stylesheet"
+          href="https://use.fontawesome.com/releases/v5.8.1/css/all.css"
+          integrity="sha384-50oBUHEmvpQ+1lW4y57PTFmhCaXp0ML5d60M1M7uH2+nqUivzIebhndOJK28anvf"
+          crossorigin="anonymous">
+
     <link rel="stylesheet" href="~/css/site.css" />
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <!-- validation code have been moved to the AddEdit.cshtml files-->
     @RenderSection("scripts", false)
-    
+
 </head>
 <body>
     <header>
-    <nav class="navbar navbar-expand-md navbar-dark bg-success">
-        <a class="navbar-brand" href="/">SportsPro</a>
-        <button class="navbar-toggler" type="button"
-                data-toggle="collapse" data-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <nav class="collapse navbar-collapse" id="navbarSupportedContent">
-            <div class="navbar-nav mr-auto">
-                <!-- make text on navbar active based on current url controller & action -->
-                <a class="nav-item nav-link @(controller == "Home" && action == "Index" ? "active" : "")"
-                    asp-controller="Home" asp-action="Index">Home</a>
-                <a class="nav-item nav-link @(controller == "Product" ? "active" : "")"
-                    asp-controller="Product" asp-action="List">Products</a>
-                <a class="nav-item nav-link @(controller == "Technician" ? "active" : "")"
-                    asp-controller="Technician" asp-action="List">Technicians</a>
-                <a class="nav-item nav-link @(controller == "Customer" ? "active" : "")"
-                    asp-controller="Customer" asp-action="List">Customers</a>
-                <a class="nav-item nav-link @(controller == "Incident" ? "active" : "")"
-                    asp-controller="Incident" asp-action="List">Incidents</a>
-                <a class="nav-item nav-link @(controller == "Registration" ? "active" : "")"
-                    asp-controller="Registration" asp-action="GetCustomer">Registrations</a>
-            </div>
-            <div class="navbar-nav navbar-right">
-                <a class="nav-item nav-link @(controller == "Home" && action == "About"? "active" : "")"
-                    asp-controller="Home" asp-action="About">About</a>
-            </div>
+        <nav class="navbar navbar-expand-md navbar-dark bg-success">
+            <a class="navbar-brand" href="/">SportsPro</a>
+            <button class="navbar-toggler" type="button"
+                    data-toggle="collapse" data-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent" aria-expanded="false"
+                    aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <nav class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="navbar-nav mr-auto">
+                    <!-- make text on navbar active based on current url controller & action -->
+                    <a class="nav-item nav-link @(controller == "Home" && action == "Index" ? "active" : "")"
+                       asp-controller="Home" asp-action="Index">Home</a>
+                    <a class="nav-item nav-link @(controller == "Product" ? "active" : "")"
+                       asp-controller="Product" asp-action="List">Products</a>
+                    <a class="nav-item nav-link @(controller == "Technician" ? "active" : "")"
+                       asp-controller="Technician" asp-action="List">Technicians</a>
+                    <a class="nav-item nav-link @(controller == "Customer" ? "active" : "")"
+                       asp-controller="Customer" asp-action="List">Customers</a>
+                    <a class="nav-item nav-link @(controller == "Incident" ? "active" : "")"
+                       asp-controller="Incident" asp-action="List">Incidents</a>
+                    <a class="nav-item nav-link @(controller == "Registration" ? "active" : "")"
+                       asp-controller="Registration" asp-action="GetCustomer">Registrations</a>
+                </div>
+                <div class="navbar-nav navbar-right">
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Login buttons and links -->
+                        @using Microsoft.AspNetCore.Identity
+                        @inject SignInManager<User> signInManager
+
+                        @if (signInManager.IsSignedIn(User))
+                        {
+                            // signed-in user - Log Out button and username
+                            <li class="nav-item">
+                                <form method="post" asp-action="LogOut" asp-controller="Account" asp-area="">
+                                    <span class="text-light">Welcome, @User.Identity.Name</span>
+                                    <input type="submit" value="Log Out" class="btn btn-outline-light" />
+                                </form>
+                            </li>
+                        }
+                        else
+                        {
+                            // anonymous user - Register link and Log In button
+                            <li class="nav-item">
+                                <a asp-action="Login" asp-controller="Account"
+                                   asp-area="" class="btn btn-outline-light">Log In</a>
+                            </li>
+                            <li class="nav-item @Nav.Active("Register", action)">
+                                <a asp-action="Register" asp-controller="Account" asp-area="" class="nav-link">
+                                    <span class="fas fa-edit"></span>&nbsp;Register
+                                </a>
+                            </li>
+                        }
+
+                        <li class="nav-item @Nav.Active("Admin", action)">
+                            <a class="nav-link" asp-action="Index" asp-controller="User">
+                                @*<a class="nav-link" asp-action="Index" asp-controller="User" asp-area="Admin">*@
+                                <span class="fas fa-cog"></span>&nbsp;Admin
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!--About us page-->
+                    <a class="nav-item nav-link @(controller == "Home" && action == "About"? "active" : "")"
+                       asp-controller="Home" asp-action="About">
+                        <span class="fas fa-info-circle"></span>&nbsp;About
+                    </a>
+
+                </div> <!-- closing navbar-right-->
+            </nav>
         </nav>
-    </nav>
     </header>
 
     <div class="container">
         <!-- ---Placeholder for TempData message to show on each webpage--- -->
         <br />
-        @if (TempData.Keys.Contains("message"))
-        {
-            <h3 class="bg-secondary text-center text-white p-2">@TempData["message"]</h3>
-        }
+        <TempMessage></TempMessage>  <!--this is a custom taghelper-->
+        @*@if (TempData.Keys.Contains("message"))
+            {
+                <h3 class="bg-secondary text-center text-white p-2">@TempData["message"]</h3>
+            }*@
         <!-- ------------------------------------------------------------- -->
 
         <main role="main" class="pb-5">

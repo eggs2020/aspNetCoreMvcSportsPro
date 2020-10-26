@@ -1,5 +1,5 @@
-﻿@model IncidentViewModel
-   
+﻿@model IEnumerable<Incident>
+
 @{
     ViewData["Title"] = "Incident Manager";
 }
@@ -37,26 +37,26 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var incident in Model.Incidents)
+        @foreach (var incident in Model)
         {
-        <tr>
-            <td>@incident.Title</td>
-            <td>@incident.Customer.FullName</td> 
-            <td>@incident.Product.Name</td>     
-            <td>@incident.DateOpened.ToShortDateString()</td>
-            <td>
-                <a asp-controller="Incident" asp-action="Edit"
-                   asp-route-id="@incident.IncidentID" class="btn btn-success btn-sm">Edit</a>
-            </td>
-            <td>
-                <a asp-controller="Incident" asp-action="Delete"
-                   asp-route-id="@incident.IncidentID" class="btn btn-success btn-sm">Delete</a>
-            </td>
+            <tr>
+                <td>@incident.Title</td>
+                <td>@incident.Customer.FullName</td>
+                <td>@incident.Product.Name</td>
+                <td>@incident.DateOpened.ToShortDateString()</td>
+                <td>
+                    <a asp-controller="Incident" asp-action="Edit"
+                       asp-route-id="@incident.IncidentID" class="btn btn-success btn-sm">Edit</a>
+                </td>
+                <td>
+                    <a asp-controller="Incident" asp-action="Delete"
+                       asp-route-id="@incident.IncidentID" class="btn btn-success btn-sm">Delete</a>
+                </td>
 
-        </tr>
+            </tr>
         }
-          
-        </tbody>
+
+    </tbody>
 
 </table>
 <a asp-controller="Incident" asp-action="Add" class="btn btn-success">Add Incident</a>

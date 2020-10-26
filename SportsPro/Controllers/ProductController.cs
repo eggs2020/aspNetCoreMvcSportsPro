@@ -5,25 +5,25 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
+using SportsPro.DataLayer;
 using SportsPro.Models;
 
 namespace SportsPro.Controllers
 {
     public class ProductController : Controller
     {
-        private SportsProContext context { get; set; }
+        private IRepository<Product> data { get; set; }
 
-        public ProductController(SportsProContext ctx)
+        public ProductController(IRepository<Product> ctx)
         {
-            context = ctx;
+            data = ctx;
         }
 
         [Route("Products")]  // creating a new url pattern to shorten the default url route
         public IActionResult List()
         {
-            var products = context.Products.ToList();
-
-            return View(products);
+            var productsOptions = new QueryOptions<Product>();
+            return View(data.List(productsOptions)); ;
         }
 
         [HttpGet]
@@ -37,7 +37,7 @@ namespace SportsPro.Controllers
         public IActionResult Edit(int id)
         {
             ViewBag.Action = "Edit";
-            var product = context.Products.Find(id);
+            var product = data.Get(id);
             return View("AddEdit", product);
         }
 
@@ -48,40 +48,38 @@ namespace SportsPro.Controllers
             {
                 if (product.ProductID == 0)
                 {
-                    context.Products.Add(product);
-                    //Adding TempData message
+                    data.Insert(product);
                     TempData["message"] = $"{product.Name} has been added.";
                 }
                 else
                 { 
-                    context.Products.Update(product);
-                    //Adding TempData message
+                    data.Update(product);
                     TempData["message"] = $"{product.Name} has been editted.";
                 }
-                context.SaveChanges();
+                data.Save();
                 return RedirectToAction("List", "Product");
             }
             else
             {
-                ViewBag.Action = (product.ProductID == 0) ? "Add" : "Edit";
-              // ViewBag.Product = context.Products.OrderBy(g => g.Name).ToList(); 
+                ViewBag.Action = (product.ProductID == 0) ? "Add" : "Edit"; 
                 return View("AddEdit", product);
             }
         }
+
+        // Load the info to the delete function 
         [HttpGet]
-        public IActionResult Delete(int id)                 // on the integer. Loads the info to the delete function 
+        public IActionResult Delete(int id)                 
         {
-            var product = context.Products.Find(id);
+            var product = data.Get(id);
             return View(product);
         }
 
+        // Serve a POST request from the delete page
         [HttpPost]
-        public IActionResult Delete(Product product)        // serve a POST request from the delete page
+        public IActionResult Delete(Product product)        
         {
-            context.Products.Remove(product);
-            context.SaveChanges();
-            
-            //Adding TempData message
+            data.Delete(product);
+            data.Save();
             TempData["message"] = $"{product.Name} has been deleted.";
             
             return RedirectToAction("List", "Product");

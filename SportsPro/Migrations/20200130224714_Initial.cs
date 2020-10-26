@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using SportsPro.DataLayer;
 
 namespace SportsPro.Migrations
 {

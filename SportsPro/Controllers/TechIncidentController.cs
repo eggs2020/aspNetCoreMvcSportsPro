@@ -2,41 +2,50 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http; // manually added to use session state
+using Microsoft.AspNetCore.Http; // for session state
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; // manually added
-using SportsPro.Models; // manually added
-
+using Microsoft.EntityFrameworkCore;
+using SportsPro.Models; 
+using SportsPro.DataLayer;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SportsPro.Controllers
 {
+    [Authorize]
     public class TechIncidentController : Controller
     {
-        private SportsProContext context { get; set; }
+        private ISportsProUnitOfWork data { get; set; }
 
-        public TechIncidentController(SportsProContext ctx)
+        public TechIncidentController(ISportsProUnitOfWork ctx)
         {
-            context = ctx;
+            data = ctx;
         }
 
+        // Display technician names in a dropdown menu
         public IActionResult Get()
         {
             // Remove session state for TechnicianID so that website throws a message if user clicks "select" button without selecting a Technician
             HttpContext.Session.Remove("sessionTechId");
 
+            var incidentOptions = new QueryOptions<Incident> { Includes = "Customer,Product" };
+            var technicianOptions = new QueryOptions<Technician>();
+            var customerOptions = new QueryOptions<Customer>();
+            var productOptions = new QueryOptions<Product>();
+
             // Create a new instance of the view model
             var viewModel = new IncidentAddEditViewModel();
 
             // Popluate only the List<> and properties needed in the Views/Get.cshtml file
-            viewModel.Incidents = context.Incidents.ToList();
-            viewModel.Technicians = context.Technicians.ToList();
+            viewModel.Incidents = data.Incidents.List(incidentOptions);
+            viewModel.Technicians = data.Technicians.List(technicianOptions);
             viewModel.CurrentIncident = new Incident();
             viewModel.CurrentTechnician = new Technician();
 
             return View(viewModel);
         }
 
-        
+        // Display incidents assigned to the selected technician
         public IActionResult List(int technicianId)
         {
             // Obtain session state for TechnicianID so website shows List page for that technician only
@@ -50,19 +59,26 @@ namespace SportsPro.Controllers
             // No session state and the user selects a Technician
             if (technicianId != 0)
             {
+                var productOptions = new QueryOptions<Product>();
+                var customerOptions = new QueryOptions<Customer>();
+                var incidentOptions = new QueryOptions<Incident>
+                {
+                    Includes = "Customer,Product",
+                    WhereClauses = new WhereClauses<Incident>
+                    {
+                        {t => t.TechnicianID == technicianId },
+                        {i => i.DateClosed == null}
+                    }
+                };
+
                 var viewModel = new IncidentAddEditViewModel();
 
-                viewModel.Products = context.Products.ToList();
-                viewModel.Customers = context.Customers.ToList();
-                viewModel.CurrentTechnician = context.Technicians.Find(technicianId);
-
-                // Query expression for incidents that are assigned to the current technician AND with no DateClosed
-                IQueryable<Incident> query = context.Incidents;
-                query = query.Where(i => i.TechnicianID == viewModel.CurrentTechnician.TechnicianID);
-                query = query.Where(i => i.DateClosed == null);
+                viewModel.Products = data.Products.List(productOptions);
+                viewModel.Customers = data.Customers.List(customerOptions);
+                viewModel.CurrentTechnician = data.Technicians.Get(technicianId);
 
                 // Populate Incidents List<> with incident object meeting query above
-                viewModel.Incidents = query.ToList();
+                viewModel.Incidents = data.Incidents.List(incidentOptions);
 
                 // Check if the selected Technician has any open incidents
                 if (viewModel.Incidents.Count == 0)
@@ -70,59 +86,68 @@ namespace SportsPro.Controllers
 
                 return View(viewModel);
             }
-            else 
+            else
             {
                 // User does not select a Technician
-                TempData["message"] = $"Please select a technician.";
+                TempData["message"] = "Please select a technician.";
                 return RedirectToAction("Get");
             }
-        }
+        }//List() action method
 
-        
+        // Load data to edit page
         [HttpGet]
-        public IActionResult Edit(int id)   // Load data to edit page when user click "edit" button on List page
+        public IActionResult Edit(int id)
         {
+            var technicianOptions = new QueryOptions<Technician>();
+            var customerOptions = new QueryOptions<Customer>();
+            var productOptions = new QueryOptions<Product>();
+            var incidentOptions = new QueryOptions<Incident>
+            {
+                Includes = "Customer,Product",
+                WhereClauses = new WhereClauses<Incident>
+                    {
+                        {t => t.IncidentID == id }
+                    }
+            };
+
             // Create a new instance of the view model
             var viewModel = new IncidentAddEditViewModel();
 
             // Populate List<> and properties of the view model
             viewModel.operationType = "Edit";
-            viewModel.CurrentIncident = context.Incidents.Find(id);
-            viewModel.Technicians = context.Technicians.ToList();
-            viewModel.Customers = context.Customers.ToList();
-            viewModel.Products = context.Products.ToList();
-            
-            // Query and populate Incidents List<> with those having the selected Incident
-            IQueryable<Incident> query = context.Incidents;
-            query = query.Where(i => i.IncidentID == viewModel.CurrentIncident.IncidentID);
-            viewModel.Incidents = query.ToList();
-            
+            viewModel.CurrentIncident = data.Incidents.Get(id);
+            viewModel.Technicians = data.Technicians.List(technicianOptions);
+            viewModel.Customers = data.Customers.List(customerOptions);
+            viewModel.Products = data.Products.List(productOptions);
+
+            // Populate Incidents List<> with those having the selected Incident
+            viewModel.Incidents = data.Incidents.List(incidentOptions);
+
             // Set session state for TechnicianID 
             HttpContext.Session.SetInt32("sessionTechId", (int)viewModel.CurrentIncident.TechnicianID);
 
             return View(viewModel);
         }
 
-
+        // Save revised incident that is assigned to a technician
         [HttpPost]
         public IActionResult Edit(IncidentAddEditViewModel viewModel)   // To save revised data for the incident
         {
 
             if (ModelState.IsValid)
             {
-                context.Incidents.Update(viewModel.CurrentIncident);
-                context.SaveChanges();
+                data.Incidents.Update(viewModel.CurrentIncident);
+                data.Incidents.Save();
                 TempData["message"] = $"Incident updated successfully.";
                 return RedirectToAction("List", "TechIncident");
             }
-            else 
+            else
             {
-                viewModel.CurrentIncident = context.Incidents.Find(viewModel.CurrentIncident.IncidentID);
+                viewModel.CurrentIncident = data.Incidents.Get(viewModel.CurrentIncident.IncidentID);
                 viewModel.operationType = "Edit";
                 return View("Edit", viewModel);
             }
         }
 
     }// controller
-
 }// namespace

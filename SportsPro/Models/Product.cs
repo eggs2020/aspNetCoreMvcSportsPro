@@ -9,10 +9,10 @@ namespace SportsPro.Models
     {
 		public int ProductID { get; set; }
 
-		[Required(ErrorMessage="The Code field is required.")]
+		[Required(ErrorMessage="Code is required.")]
 		public string ProductCode { get; set; }
 
-		[Required]
+		[Required(ErrorMessage = "Name is required.")]
 		public string Name { get; set; }
 
 		[Range(0, 1000000)]

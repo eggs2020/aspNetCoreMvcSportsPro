@@ -3,9 +3,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
 using Microsoft.EntityFrameworkCore;
+using SportsPro.DataLayer;
 using SportsPro.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace SportsPro
 {
@@ -27,9 +28,20 @@ namespace SportsPro
 
             services.AddControllersWithViews();
 
+            services.AddTransient<ISportsProUnitOfWork, SportsProUnitOfWork>();
+            services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
+
             services.AddDbContext<SportsProContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("SportsPro")));
+
+            // add identity and roles
+            services.AddIdentity<User, IdentityRole>(options => {
+                options.Password.RequiredLength = 6;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireDigit = false;
+            }).AddEntityFrameworkStores<SportsProContext>()
+              .AddDefaultTokenProviders();
 
             services.AddRouting(options => {
                 options.LowercaseUrls = true;
@@ -55,6 +67,8 @@ namespace SportsPro
 
             app.UseRouting();
 
+            // For website login and authorization. UseAuthentication() must appear first here 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             // Adding session state (must be before UseEndpoints() ) 
@@ -66,6 +80,9 @@ namespace SportsPro
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            //create admin user. Need to add line 25 to program.cs file
+            SportsProContext.CreateAdminUser(app.ApplicationServices).Wait();
         }
     }
 }
